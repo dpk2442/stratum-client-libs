@@ -48,14 +48,14 @@ class StratumClient(object):
     def run(self):
         while True:
             message = self.receive_message_from_server()
-            self.messaged_received_from_server(message)
+            self.message_received_from_server(message)
 
     def _send_obj_to_server(self, obj):
         s = json.dumps(obj) + "\n"
         self._socket_writefile.write(s.encode())
 
     def send_message_to_server(self, message):
-        self._send_to_server({
+        self._send_obj_to_server({
             "type": "message",
             "payload": json.dumps(message)
         })
