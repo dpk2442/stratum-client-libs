@@ -1,6 +1,7 @@
 import functools
 from stratum_client import StratumClient, main
 
+
 class TicTacToeClient(StratumClient):
 
     def __init__(self, settings):
@@ -14,6 +15,22 @@ class TicTacToeClient(StratumClient):
             print("Player {} wins!".format(self._winner))
         else:
             print("Draw!")
+
+    def _make_move(self):
+        while True:
+            move = input("Your Move? (row, column) ")
+            try:
+                row, col = (int(x.strip()) for x in move.split(","))
+            except:
+                print("Invalid input value.")
+                continue
+            break
+        self.send_message_to_server({
+            "type": "move",
+            "row": row,
+            "column": col
+        })
+
     
     def message_received_from_server(self, message):
         if message["type"] == "state":
@@ -23,13 +40,12 @@ class TicTacToeClient(StratumClient):
             print("\nYour turn!")
             board = list(map(lambda x: x or " ", functools.reduce(lambda x, y: x+y, self._board, [])))
             print("\n{} | {} | {}\n---------\n{} | {} | {}\n---------\n{} | {} | {}\n".format(*board))
-            move = input("Your Move? (row, column) ")
-            row, col = (int(x.strip()) for x in move.split(","))
-            self.send_message_to_server({
-                "type": "move",
-                "row": row,
-                "column": col
-            })
+            self._make_move()
+        elif message["type"] == "repeat-turn":
+            print("The server rejected your last move.")
+            print("The error was:", message["error"])
+            self._make_move()
+
 
 
 if __name__ == "__main__":
