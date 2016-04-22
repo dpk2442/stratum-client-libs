@@ -1,11 +1,11 @@
 import functools
-from stratum_client import StratumClient, main
+from stratum_client import StratumClientInstance, main
 
 
-class TicTacToeClient(StratumClient):
+class TicTacToeClient(StratumClientInstance):
 
-    def __init__(self, settings):
-        super(TicTacToeClient, self).__init__(settings)
+    def __init__(self, *args):
+        super(TicTacToeClient, self).__init__(*args)
         self._board = None
         self._winner = None
 
@@ -49,4 +49,4 @@ class TicTacToeClient(StratumClient):
 
 
 if __name__ == "__main__":
-    main(TicTacToeClient)
+    main(TicTacToeClient, max_games=1)

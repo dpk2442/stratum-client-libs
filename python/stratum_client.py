@@ -5,9 +5,21 @@ import sys
 
 class StratumClient(object):
 
-    def __init__(self, settings):
+    def __init__(self, settings, client_instance_constructor):
         self._settings = settings
         self._socket = None
+        self._socket_readfile = None
+        self._socket_writefile = None
+        self._client_instance_constructor = client_instance_constructor
+        self._client_instances = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._socket_writefile: self._socket_writefile.close()
+        if self._socket_readfile: self._socket_readfile.close()
+        if self._socket: self._socket.close()
 
     def connect(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -20,9 +32,10 @@ class StratumClient(object):
         self._socket_readfile = self._socket.makefile('rb', 0)
         self._socket_writefile = self._socket.makefile('wb', 0)
 
-        self._send_obj_to_server({
+        self.send_obj_to_server({
             "type": "connect",
-            "payload": self._settings["name"]
+            "name": self._settings["name"],
+            "max_games": self._settings["max_games"]
         })
 
         response = self._receive_obj_from_server()
@@ -30,53 +43,52 @@ class StratumClient(object):
             print("Invalid response received from server")
             sys.exit(1)
 
-        self._settings["name"] = response["payload"]
-        self.name_received_from_server(response["payload"])
+        self._settings["name"] = response["name"]
+        print("Connected to server as {}".format(response["name"]))
 
-    def shutdown(self, sendClose=True):
-        if sendClose:
-            self._send_obj_to_server({
-                "type": "close",
-                "payload": None
-            })
-
-        self._socket_writefile.close()
-        self._socket_readfile.close()
-        self._socket.close()
-        sys.exit(0)
 
     def run(self):
         while True:
-            message = self.receive_message_from_server()
-            self.message_received_from_server(message)
+            obj = self._receive_obj_from_server()
+            if obj["type"] == "close":
+                game_id = obj["game_id"]
+                if game_id in self._client_instances:
+                    self._client_instances[game_id].server_closed_connection()
+                    del self._client_instances[game_id]
+            elif obj["type"] == "message":
+                game_id = obj["game_id"]
+                message = json.loads(obj["payload"])
+                if game_id in self._client_instances:
+                    self._client_instances[game_id].message_received_from_server(message)
+            elif obj["type"] == "start":
+                game_id = obj["game_id"]
+                client_instance = self._client_instance_constructor(self, game_id)
+                self._client_instances[game_id] = client_instance
+            else:
+                print("Invalid response received from server")
+                sys.exit(1)
 
-    def _send_obj_to_server(self, obj):
+    def send_obj_to_server(self, obj):
         s = json.dumps(obj) + "\n"
         self._socket_writefile.write(s.encode())
 
-    def send_message_to_server(self, message):
-        self._send_obj_to_server({
-            "type": "message",
-            "payload": json.dumps(message)
-        })
-
     def _receive_obj_from_server(self):
         b = self._socket_readfile.readline()
-        obj = json.loads(b.decode().strip())
-        if obj["type"] == "close":
-            self.server_closed_connection()
-            self.shutdown(False)
-        return obj
+        return json.loads(b.decode().strip())
 
-    def receive_message_from_server(self):
-        obj = self._receive_obj_from_server()
-        if obj["type"] != "message":
-            print("Invalid response received from server")
-            sys.exit(1)
-        return json.loads(obj["payload"])
 
-    def name_received_from_server(self, name):
-        print("Connected to server as {}".format(name))
+class StratumClientInstance:
+
+    def __init__(self, client, game_id):
+        self._client = client
+        self._game_id = game_id
+
+    def send_message_to_server(self, message):
+        self._client.send_obj_to_server({
+            "type": "message",
+            "game_id": self._game_id,
+            "payload": json.dumps(message)
+        })
 
     def server_closed_connection(self):
         print("Server closed the connection")
@@ -85,15 +97,16 @@ class StratumClient(object):
         raise NotImplementedError
 
 
-def main(client_constructor, **kwargs):
+def main(client_instance_constructor, **kwargs):
     settings = {
         "host": "localhost",
         "port": 8889,
-        "name": None
+        "name": None,
+        "max_games": 5
     }
 
     # parse keyword arg parameters
-    for key, value in kwargs:
+    for key, value in kwargs.items():
         if key in settings:
             settings[key] = value
 
@@ -106,6 +119,8 @@ def main(client_constructor, **kwargs):
                 settings["host"] = args.pop(0)
             elif arg == "--port":
                 settings["port"] = int(args.pop(0))
+            elif arg == "--max-games":
+                settings["max_games"] = int(args.pop(0))
             else:
                 print("Invalid argument.")
                 sys.exit(1)
@@ -113,6 +128,6 @@ def main(client_constructor, **kwargs):
             print("Invalid argument format.")
             sys.exit(1)
 
-    client = client_constructor(settings)
-    client.connect()
-    client.run()
+    with StratumClient(settings, client_instance_constructor) as client:
+        client.connect()
+        client.run()
