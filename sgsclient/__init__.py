@@ -3,7 +3,7 @@ import socket
 import sys
 
 
-class StratumClient(object):
+class StratumGSClient(object):
 
     def __init__(self, settings, client_instance_constructor):
         self._settings = settings
@@ -77,7 +77,7 @@ class StratumClient(object):
         return json.loads(b.decode().strip())
 
 
-class StratumClientInstance:
+class StratumGSClientInstance:
 
     def __init__(self, client, game_id):
         self._client = client
@@ -128,6 +128,6 @@ def main(client_instance_constructor, **kwargs):
             print("Invalid argument format.")
             sys.exit(1)
 
-    with StratumClient(settings, client_instance_constructor) as client:
+    with StratumGSClient(settings, client_instance_constructor) as client:
         client.connect()
         client.run()

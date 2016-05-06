@@ -1,6 +1,6 @@
-from stratum_client import StratumClientInstance, main
+from sgsclient import StratumGSClientInstance, main
 
-class TicTacToeClient(StratumClientInstance):
+class TicTacToeClient(StratumGSClientInstance):
 
     def __init__(self, *args):
         super(TicTacToeClient, self).__init__(*args)
