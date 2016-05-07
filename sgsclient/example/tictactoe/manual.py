@@ -1,8 +1,20 @@
+"""
+.. module sgsclient.example.tictactoe.manual
+
+An example client for TicTacToe that prompts the user for input.
+
+When executed directly it will call :func:`sgsclient.main` with
+``max_games = 1``.
+"""
+
 import functools
 from sgsclient import StratumGSClientInstance, main
 
 
 class TicTacToeClient(StratumGSClientInstance):
+    """
+        An example TicTacToe client that prompts the user for input.
+    """
 
     def __init__(self, *args):
         super(TicTacToeClient, self).__init__(*args)
@@ -10,6 +22,11 @@ class TicTacToeClient(StratumGSClientInstance):
         self._winner = None
 
     def server_closed_connection(self):
+        """
+            Print out the end status of the game when the server closes the
+            connection.
+        """
+
         print("Game Over!")
         if self._winner:
             print("Player {} wins!".format(self._winner))
@@ -17,6 +34,11 @@ class TicTacToeClient(StratumGSClientInstance):
             print("Draw!")
 
     def _make_move(self):
+        """
+            Makes a move. Prompts the user for input until they provide a valid
+            move, then sends that move to the server.
+        """
+
         while True:
             move = input("Your Move? (row, column) ")
             try:
@@ -33,6 +55,10 @@ class TicTacToeClient(StratumGSClientInstance):
 
     
     def message_received_from_server(self, message):
+        """
+            Handle a received message from the server.
+        """
+
         if message["type"] == "state":
             self._board = message["board"]
             self._winner = message["winner"]

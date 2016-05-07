@@ -1,3 +1,10 @@
+"""
+.. module sgsclient
+
+This module contains the client library code. In general, a client should
+subclass ``StratumGSClientInstance`` and call the ``main`` function.
+"""
+
 import json
 import socket
 import sys
@@ -78,12 +85,30 @@ class StratumGSClient(object):
 
 
 class StratumGSClientInstance:
+    """
+        The client instance that is instantiated for each game. This class
+        should be subclassed, and the methods ``server_closed_connection`` and
+        ``message_received_from_server`` should be implemented.
+
+        :param client: The client that spawned this instance.
+        :type client: :class:`StratumGSClient`
+        :param game_id: The game id of the new game.
+        :type game_id: int
+    """
 
     def __init__(self, client, game_id):
         self._client = client
         self._game_id = game_id
 
     def send_message_to_server(self, message):
+        """
+            Send a message to the engine. The message should be a JSON-encodable
+            object. This method will encode the message, wrap it with the
+            appropriate message for the server, and send it.
+
+            :param message: A JSON-encodable message object for the engine.
+        """
+
         self._client.send_obj_to_server({
             "type": "message",
             "game_id": self._game_id,
@@ -91,13 +116,45 @@ class StratumGSClientInstance:
         })
 
     def server_closed_connection(self):
+        """
+            **Must be implemented by the subclass.**
+
+            Called to notify the client that the server closed the connection.
+        """
+
         print("Server closed the connection")
 
     def message_received_from_server(self, message):
+        """
+            **Must be implemented by the subclass.**
+
+            Called when a message for this game is received from the server.
+            Message will be the decoded value of the ``payload`` parameter of
+            the original message from the server.
+
+            :param message: The decoded message.
+        """
+
         raise NotImplementedError
 
 
 def main(client_instance_constructor, **kwargs):
+    """
+        The main run loop for the client. This function parses the command line
+        arguments, then parses the ``kwargs``.
+
+        The following configuration parameters are accepted as keyword
+        arguments:
+
+        - **host**: The host to connect to.
+        - **port**: The port to connect to.
+        - **name**: The name to request to connect with.
+        - **max_games**: The maximum number of games the client can support.
+
+        :param client_instance_constructor: The class to instantiate for client
+                                            instances.
+    """
+
     settings = {
         "host": "localhost",
         "port": 8889,
