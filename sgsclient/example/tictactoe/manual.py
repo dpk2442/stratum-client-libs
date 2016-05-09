@@ -4,7 +4,7 @@
 An example client for TicTacToe that prompts the user for input.
 
 When executed directly it will call :func:`sgsclient.main` with
-``max_games = 1``.
+``supported_games = ["tictactoe"]`` and ``max_games = 1``.
 """
 
 import functools
@@ -75,4 +75,4 @@ class TicTacToeClient(StratumGSClientInstance):
 
 
 if __name__ == "__main__":
-    main(TicTacToeClient, max_games=1)
+    main(TicTacToeClient, supported_games=["tictactoe"], max_games=1)

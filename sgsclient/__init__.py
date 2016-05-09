@@ -42,6 +42,7 @@ class StratumGSClient(object):
         self.send_obj_to_server({
             "type": "connect",
             "name": self._settings["name"],
+            "supported_games": self._settings["supported_games"],
             "max_games": self._settings["max_games"]
         })
 
@@ -149,6 +150,7 @@ def main(client_instance_constructor, **kwargs):
         - **host**: The host to connect to.
         - **port**: The port to connect to.
         - **name**: The name to request to connect with.
+        - **supported_games**: The list of supported games.
         - **max_games**: The maximum number of games the client can support.
 
         :param client_instance_constructor: The class to instantiate for client
@@ -159,6 +161,7 @@ def main(client_instance_constructor, **kwargs):
         "host": "localhost",
         "port": 8889,
         "name": None,
+        "supported_games": [],
         "max_games": 5
     }
 

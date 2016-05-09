@@ -3,7 +3,8 @@
 
 An example client for TicTacToe that plays in the next available space.
 
-When executed directly it will call :func:`sgsclient.main`.
+When executed directly it will call :func:`sgsclient.main` with
+``supported_games = ["tictactoe"]``.
 """
 
 from sgsclient import StratumGSClientInstance, main
@@ -60,4 +61,4 @@ class TicTacToeClient(StratumGSClientInstance):
 
 
 if __name__ == "__main__":
-    main(TicTacToeClient)
+    main(TicTacToeClient, supported_games=["tictactoe"])
