@@ -10,6 +10,9 @@ import socket
 import sys
 
 
+version = "0.1.0"
+
+
 class StratumGSClient(object):
 
     def __init__(self, settings, client_instance_constructor):
