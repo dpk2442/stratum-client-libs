@@ -11,6 +11,13 @@ import functools
 from sgsclient import StratumGSClientInstance, main
 
 
+_BOARD_TEMPLATE = "\n{} | {} | {}" \
+                  "\n---------"    \
+                  "\n{} | {} | {}" \
+                  "\n---------"    \
+                  "\n{} | {} | {}\n"
+
+
 class TicTacToeClient(StratumGSClientInstance):
     """
         An example TicTacToe client that prompts the user for input.
@@ -53,7 +60,6 @@ class TicTacToeClient(StratumGSClientInstance):
             "column": col
         })
 
-    
     def message_received_from_server(self, message):
         """
             Handle a received message from the server.
@@ -64,14 +70,14 @@ class TicTacToeClient(StratumGSClientInstance):
             self._winner = message["winner"]
         elif message["type"] == "turn":
             print("\nYour turn!")
-            board = list(map(lambda x: x or " ", functools.reduce(lambda x, y: x+y, self._board, [])))
-            print("\n{} | {} | {}\n---------\n{} | {} | {}\n---------\n{} | {} | {}\n".format(*board))
+            board = list(map(lambda x: x or " ",
+                             functools.reduce(lambda x, y: x+y, self._board, [])))
+            print(_BOARD_TEMPLATE.format(*board))
             self._make_move()
         elif message["type"] == "repeat-turn":
             print("The server rejected your last move.")
             print("The error was:", message["error"])
             self._make_move()
-
 
 
 if __name__ == "__main__":

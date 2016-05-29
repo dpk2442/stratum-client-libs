@@ -9,6 +9,7 @@ When executed directly it will call :func:`sgsclient.main` with
 
 from sgsclient import StratumGSClientInstance, main
 
+
 class TicTacToeClient(StratumGSClientInstance):
     """
         An example TicTacToe client that plays in the next available space.

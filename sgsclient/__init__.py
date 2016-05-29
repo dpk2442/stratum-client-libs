@@ -27,9 +27,12 @@ class StratumGSClient(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self._socket_writefile: self._socket_writefile.close()
-        if self._socket_readfile: self._socket_readfile.close()
-        if self._socket: self._socket.close()
+        if self._socket_writefile:
+            self._socket_writefile.close()
+        if self._socket_readfile:
+            self._socket_readfile.close()
+        if self._socket:
+            self._socket.close()
 
     def connect(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -56,7 +59,6 @@ class StratumGSClient(object):
 
         self._settings["name"] = response["name"]
         print("Connected to server as {}".format(response["name"]))
-
 
     def run(self):
         while True:

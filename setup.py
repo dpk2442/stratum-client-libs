@@ -4,8 +4,9 @@ import sgsclient
 
 
 def readme():
-      with open("README.rst") as f:
-            return f.read()
+    with open("README.rst") as f:
+        return f.read()
+
 
 setup(name="sgsclient",
       version=sgsclient.version,
